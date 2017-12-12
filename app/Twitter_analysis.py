@@ -117,7 +117,7 @@ def user_histogram():
     usernames = dict()
     for each_city in cities:
         usernames[each_city] = []
-        for tweet in mongo_db_object['delhi'].find():
+        for tweet in mongo_db_object[each_city].find():
             usernames[each_city].append(tweet['user']['name'])
         usernames[each_city] = Counter(usernames[each_city]).most_common(10)
     return jsonify({"user_histogram": usernames, "status": True})
@@ -232,12 +232,21 @@ def tweet_time():
         if '#OddEven' in terms_hash:
             data['delhi_oddeven'].append(tweet['created_at'])
 
-    pd = dict()
+    pd = pandas.Series()
     for each_entry in data.keys():
-        pd[each_entry] = pandas.Series([1] * len(data[each_entry]), index=pandas.DatetimeIndex(
-            data[each_entry])).resample('D', how='sum').fillna(0)
+        pd = pandas.concat([pd, pandas.Series([1] * len(data[each_entry]), index=pandas.DatetimeIndex(
+            data[each_entry]), name=each_entry).resample('D').sum()], axis=1)
 
-    return jsonify({"data": data})
+        # pd = pandas.Series([1] * len(data[each_entry]), index=pandas.DatetimeIndex(
+        #     data[each_entry]), name=each_entry).resample('D').sum().fillna(0)
+
+    #,axis=1, join_axes=[pd['delhi_smog'].index]
+    # result = pandas.concat(
+    #     [pd['delhi_smog'], pd['delhi_myrightTobreathe']],  axis=1)
+    # print(pd['delhi_myrightTobreathe'])
+    # print(pd['delhi_smog'])
+
+    return jsonify({"data": pd.fillna(0).reset_index().values.tolist()})
 
 
 # # ## Network graph
@@ -283,13 +292,14 @@ def tweet_time():
 # # In[13]:
 
 def user_fav():
-    count = dict()
+    count = []
 
     for each_city in cities:
-        count[each_city] = []
+        count_each_city = []
         for tweet in mongo_db_object[each_city].find():
             if "retweeted_status" not in tweet:
-                count[each_city].append(int(tweet['favorite_count']))
+                count_each_city.append(int(tweet['favorite_count']))
+        count.append(count_each_city)
     return jsonify({"data": count})
 
 

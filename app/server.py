@@ -26,6 +26,7 @@ app.route("/word/cloud")(Twitter_analysis.wordcloud)
 app.route("/tweet/status")(Twitter_analysis.tweet_status)
 app.route("/tweet/time")(Twitter_analysis.tweet_time)
 app.route("/user/fav")(Twitter_analysis.user_fav)
+app.route("/tweet/media_type")(Twitter_analysis.tweet_type)
 app.route("/tweet/sentiment")(Twitter_analysis.tweet_rescue)
 
 
